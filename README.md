@@ -12,6 +12,10 @@
 - torch=1.7
 - transformers=4.5.0
 # 运行示例
+## 数据集的准备
+1. 去https://github.com/pluto-junzeng/CNSD 把SNLI数据集和STS-B数据集下载到data文件夹  
+2. 运行https://github.com/zhengyanzhao1997/NLP-model/blob/main/model/model/Torch_model/SimCSE-Chinese/SNIL_data_process.py 处理SNLI数据集  
+
 BERT_avg
 ```
 python3 run_BERT_avg.py
