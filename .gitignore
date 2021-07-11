@@ -1,0 +1,5 @@
+./output/*
+*.jsonl
+*.xml
+*.iml
+*.txt
