@@ -10,7 +10,7 @@
 
 部分实验效果如下：   
  
-|                                | Chines dev | Chines test |   
+|                | Chines-STS-B dev | Chines-STS-B test |   
 | ------------------------------ | ----- | --- |    
 | BERT-avg(CLS-token)      | 54.39 | 48.34 |     
 | BERT-whitening    | 74.70 | 66.98 |     
