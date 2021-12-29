@@ -1,8 +1,10 @@
 import logging
 import math
+import os
 from datetime import datetime
 
 import torch
+from data.dataset import load_STS_data, load_snli_jsonl
 from sentence_transformers import InputExample, SentenceTransformer, LoggingHandler
 from sentence_transformers import models, losses
 from sentence_transformers.ConSERT import ConSERT
@@ -10,7 +12,7 @@ from sentence_transformers.ESimCSE import ESimCSE
 from sentence_transformers.evaluation import EmbeddingSimilarityEvaluator, SimilarityFunction
 from torch.utils.data import DataLoader
 
-from data.dataset import load_STS_data
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 #### Just some code to print debug information to stdout
 logging.basicConfig(format='%(asctime)s - %(message)s',
@@ -22,9 +24,6 @@ logging.basicConfig(format='%(asctime)s - %(message)s',
 model_name = '/data/junxian/PTMs/chinese-macbert-base'
 train_batch_size = 50
 num_epochs = 4
-model_name = '/data/junxian/PTMs/chinese-roberta-wwm-ext'
-train_batch_size = 30
-num_epochs = 2
 max_seq_length = 64
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 device = "cuda:0"
@@ -38,34 +37,16 @@ model_save_path = '/data/junxian/NLP-Series-sentence-embeddings/output/stsb_esim
 # 建立模型
 moco_encoder = SentenceTransformer(model_name, device=device).to(device)
 moco_encoder.__setattr__("max_seq_length", max_seq_length)
-model = ESimCSE(model_name, device=device, dup_rate=0.36, q_size=256)
-model.__setattr__("max_seq_length", max_seq_length)
+word_embedding_model = models.Transformer(model_name)
+word_embedding_model.__setattr__("max_seq_length", max_seq_length)
+pooling_model = models.Pooling(word_embedding_dimension=word_embedding_model.get_word_embedding_dimension(),
+                               pooling_mode="cls",
+                               pooling_mode_cls_token=True)
+model = ESimCSE(modules=[word_embedding_model, pooling_model], device=device, dup_rate=0.32, q_size=150)
 
 # 准备训练集
 sts_vocab = load_STS_data("/data/junxian/STS-B/cnsd-sts-train.txt")
 all_vocab = [x[0] for x in sts_vocab] + [x[1] for x in sts_vocab]
-model_save_path = '/data/junxian/NLP-Series-sentence-embeddings/output/stsb_simcse-{}-{}-{}'.format("macbert",
-                                                                                                    train_batch_size,
-                                                                                                    datetime.now().strftime(
-                                                                                                        "%Y-%m-%d_%H-%M-%S"))
-
-# 建立模型
-# word_embedding_model = models.Transformer(model_name, max_seq_length=max_seq_length)
-# word_embedding_model.auto_model.attention_probs_dropout_prob = 0.1  #
-# word_embedding_model.auto_model.hidden_dropout_prob = 0.1  #
-# pooling_model = models.Pooling(word_embedding_dimension=word_embedding_model.get_word_embedding_dimension(),
-#                                pooling_mode="cls",
-#                                pooling_mode_cls_token=True)
-# model = SentenceTransformer(modules=[word_embedding_model, pooling_model], device=device)
-model = ESimCSE(model_name, device=device)
-model.__setattr__("max_seq_length", max_seq_length)
-model.moco_encoder.__setattr__("max_seq_length", max_seq_length)
-
-# 准备训练集
-sts_vocab = load_STS_data("/data/junxian/STS-B/cnsd-sts-train.txt")
-# all_vocab = [x[0] for x in sts_vocab] + [x[1] for x in sts_vocab]
-all_vocab = [x[0] for x in sts_vocab]
->>>>>>> bb0431f... update
 simCSE_data = all_vocab
 print("The len of SimCSE unsupervised data is {}".format(len(simCSE_data)))
 train_samples = []

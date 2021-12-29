@@ -11,7 +11,6 @@ from sentence_transformers.evaluation import EmbeddingSimilarityEvaluator, Simil
 from sentence_transformers.losses import TripletDistanceMetric
 from torch.utils.data import DataLoader
 
-
 #### Just some code to print debug information to stdout
 logging.basicConfig(format='%(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
@@ -35,13 +34,6 @@ model_save_path = '/data/junxian/NLP-Series-sentence-embeddings/output/{}-sbert-
                                                                                                      "%Y-%m-%d_%H-%M-%S"))
 
 # 建立模型
-# word_embedding_model = models.Transformer(model_name, max_seq_length=max_seq_length)
-# word_embedding_model.auto_model.attention_probs_dropout_prob = 0.1  #
-# word_embedding_model.auto_model.hidden_dropout_prob = 0.1  #
-# pooling_model = models.Pooling(word_embedding_dimension=word_embedding_model.get_word_embedding_dimension(),
-#                                pooling_mode="cls",
-#                                pooling_mode_cls_token=True)
-# model = SentenceTransformer(modules=[word_embedding_model, pooling_model], device=device)
 model = SentenceTransformer(model_name, device=device)
 model.__setattr__("max_seq_length", max_seq_length)
 
