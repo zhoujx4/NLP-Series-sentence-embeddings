@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 
 import torch
-from data.dataset import load_STS_data, load_snli_vocab
+from data.dataset import load_STS_data, load_snli_jsonl
 from sentence_transformers import InputExample, SentenceTransformer, LoggingHandler
 from sentence_transformers import losses
 from sentence_transformers.evaluation import EmbeddingSimilarityEvaluator, SimilarityFunction
@@ -28,10 +28,11 @@ device = "cuda:0"
 train_dataset = "snli"  # 选择有监督训练的数据集
 
 # 模型保存路径
-model_save_path = '/data/junxian/NLP-Series-sentence-embeddings/output/stsb_simcse-{}-{}-{}'.format("macbert",
-                                                                                                    train_batch_size,
-                                                                                                    datetime.now().strftime(
-                                                                                                        "%Y-%m-%d_%H-%M-%S"))
+model_save_path = '/data/junxian/NLP-Series-sentence-embeddings/output/{}-sbert-{}-{}-{}'.format(train_dataset,
+                                                                                                 "macbert",
+                                                                                                 train_batch_size,
+                                                                                                 datetime.now().strftime(
+                                                                                                     "%Y-%m-%d_%H-%M-%S"))
 
 # 建立模型
 # word_embedding_model = models.Transformer(model_name, max_seq_length=max_seq_length)
@@ -53,12 +54,14 @@ if train_dataset == "sts":
     for data in sts_vocab:
         train_samples.append(InputExample(texts=[data[0], data[1]], label=data[2] / 5.0))
 elif train_dataset == "snli":
-    snil_vocab = load_snli_vocab("/data/junxian/cnsd-snli/cnsd_snli_v1.0.trainproceed.txt")
+    snil_vocab = load_snli_jsonl("/data/junxian/cnsd-snli/cnsd_snli_v1.0.train.jsonl")
     random.shuffle(snil_vocab)
     print("The len of snil supervised data is {}".format(len(snil_vocab)))
     train_samples = []
+    dic_gold_label = {"entailment": 1, "neutral": 0, "contradiction": 2}
     for data in snil_vocab:
-        train_samples.append(InputExample(texts=[data["origin"], data["entailment"], data["contradiction"]]))
+        train_samples.append(
+            InputExample(texts=[data["sentence1"], data["sentence2"]], label=dic_gold_label[data["gold_label"]]))
 
 # 准备验证集和测试集
 dev_data = load_STS_data("/data/junxian/STS-B/cnsd-sts-dev.txt")

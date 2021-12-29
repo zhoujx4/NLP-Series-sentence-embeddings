@@ -33,6 +33,12 @@ def load_snli_vocab(path):
             data.append(json.loads(i))
     return data
 
+def load_snli_jsonl(path):
+    data = []
+    with open(path) as f:
+        for i in f:
+            data.append(json.loads(i))
+    return data
 
 def load_STS_data(path):
     data = []
